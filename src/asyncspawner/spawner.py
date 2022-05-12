@@ -115,8 +115,13 @@ class AsyncSpawner:
         proc = current_process()
         _logger.info(f'{proc.name} received task {coro}')
 
+        proc_conn, task_conn = Pipe()
+
+        coro = AsyncSpawner._run_coro(coro, task_conn)
         ft = proc.loop.run_in_executor(proc.thread_executor, AsyncSpawner._run_in_thread, coro)
-        send_conn, recv_conn = Pipe()
+
+        # Waiting for thread to accept the task:
+        proc_conn.recv()
 
         def task_done_callback(ft):
             task = {'task': str(coro)}
@@ -125,21 +130,36 @@ class AsyncSpawner:
                 task['result'] = ft.result()
             except Exception as e:
                 task['exception'] = e
-                _logger.exception(f'{proc.name} failed processing task {coro}')
+                _logger.exception(f'{proc.name} failed to process task {coro}')
             finally:
-                send_conn.send(task)
+                task_conn.send(task)
                 _logger.info(f'{proc.name} finished {task}')
 
         ft.add_done_callback(task_done_callback)
 
-        return recv_conn
+        return proc_conn
 
     @staticmethod
     def _run_in_thread(coro):
         proc = current_process()
         thread = current_thread()
-        _logger.info(f'Thread {proc.name}::{thread.name} received task {coro}')
+        _logger.info(f'{proc.name}::{thread.name} received task {coro}')
 
         ft = asyncio.run_coroutine_threadsafe(coro(), loop=proc.loop)
 
         return ft.result()
+
+    @staticmethod
+    def _run_coro(coro, task_conn):
+        proc = current_process()
+
+        async def wrapper():
+            # Notify the parent process the task has been started:
+            task_conn.send(True)
+
+            thread = current_thread()
+            _logger.info(f'{proc.name}:{thread.name} started task {coro}')
+
+            return await coro()
+
+        return wrapper
