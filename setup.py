@@ -2,7 +2,7 @@ from pathlib import Path
 
 from setuptools import setup, find_packages
 
-from src import asyncspawner
+import asyncspawner
 
 
 setup(
@@ -16,8 +16,8 @@ setup(
     url='https://github.com/ktolstikhin/asyncspawner',
     bugtrack_url='https://github.com/ktolstikhin/asyncspawner/issues',
     license='MIT',
-    package_dir={'': 'src'},
-    packages=find_packages(where='src'),
+    package_dir={'': '.'},
+    packages=find_packages(where='.'),
     python_requires='>=3.7',
     install_requires=[],
     classifiers=[
