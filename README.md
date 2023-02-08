@@ -2,6 +2,8 @@
 
 ![python](https://img.shields.io/pypi/pyversions/asyncspawner.svg)
 ![version](https://img.shields.io/pypi/v/asyncspawner.svg)
+![downloads](https://img.shields.io/pypi/dm/asyncspawner.svg)
+![format](https://img.shields.io/pypi/format/asyncspawner.svg)
 
 This package allows you to spawn coroutines in threads running inside processes in order to parallelize async task execution on a multi-core CPU machine. Each worker process in a process pool initializes on start a thread pool and an event loop that is used to run `asyncio` coroutines thread-safe inside the current process threads. The process and thread management are based on `ProcessPoolExecutor` and  `ThreadPoolExecutor`, respectively, which are provided by the standard `concurrent.futures` module. No extra dependencies are required.
 
